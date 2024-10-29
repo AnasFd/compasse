@@ -1,0 +1,29 @@
+Pour le projet,
+Use getMotor RPMin something ==> get all vitesse all while keeping a delay of (200/300)
+between setmotorspeed and getRPM... les vitesses sont stockés par lasuite dans un tableau au lieu dans un ficher 
+(optimisation) pui à la fin stocker le tableau dans un fichier 
+
+a function to get the rotation per minute for each power gowing from 0 -> 100 by a step of 1
+- the values should be stored first in a table
+- once the program is done writing values. Rewrite them in a file for inspection
+
+- From Rotation per minute to RP second -> r*360/60 = r*6
+
+The problem with PID is that When I change the angle, the motor starts dancing around...
+
+Fixed that by:
+- Removing the delay in the PID function
+- With the following values: 
+	- const float P = 10.0; (with a slow P like 1.0, Je tombe sur un erreur de +-1)
+	- const float D = -0.02;
+	- const float I = 0.001;
+
+Gyro:
+- minPower2 = 1
+- maxPower2 = 48
+- maxSpeed2 = 494
+- minSpeed2 = 18
+- pente = maxSpeed2/maxPower2 = 494/48 = 10.2916666667
+
+getGyroDegrees cap actuelle
+getgyrorate angular speed
