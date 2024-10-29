@@ -27,3 +27,5 @@ Gyro:
 
 getGyroDegrees cap actuelle
 getgyrorate angular speed
+
+hee
