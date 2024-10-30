@@ -25,5 +25,7 @@ task IHM2();
 // fonctions pour le main
 void initialize();
 task interface();
+void stopFixe();
+void stopMobile();
 
 #endif

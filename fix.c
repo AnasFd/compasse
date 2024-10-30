@@ -52,9 +52,6 @@ task watchButtons() {
 			setMotorTarget(moteur, consigne, 20);
 			while(getButtonPress(buttonLeft)) {}
 		}
-
-		// Petite pause pour éviter la surconsommation CPU
-		//delay(100);
 	}
 }
 
@@ -131,12 +128,14 @@ task keepHeadingPID() {
 task IHM() {
 	while (true) {
 		eraseDisplay(); // Clear display
-		displayTextLine(1, "Motor Control");
-		displayTextLine(2, "Right: +10 deg");
-		displayTextLine(3, "Left: -10 deg");
-		displayTextLine(4, "Up: +90 deg");
-		displayTextLine(5, "Down: -90 deg");
-		displayTextLine(6, "Center: Exit");
+		displayCenteredTextLine(1, "Mode Fixe");
+
+		displayTextLine(3, "Consignes:");
+		displayTextLine(4, "Btn droite: +10 deg");
+		displayTextLine(5, "Btn Gauche: -10 deg");
+		displayTextLine(6, "Btn Haut  : +90 deg");
+		displayTextLine(7, "Btn Bas   : -90 deg");
+		displayTextLine(8, "Btn Center: Menu Principal");
 
 		displayTextLine(12, "DEBUG:");
 		semaphoreLock(semConsigne);
@@ -144,6 +143,6 @@ task IHM() {
 		semaphoreUnlock(semConsigne);
 		displayTextLine(14, "Motor Position: %d", nMotorEncoder[moteur]);
 
-		//delay(100); // Refresh every 500ms
+		delay(300);
 	}
 }

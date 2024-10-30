@@ -14,13 +14,8 @@ int currentHistorySize2 = 0; // Track the actual number of values in history
 
 task watchButtons2() {
 	while(true) {
-		if (getButtonPress(buttonEnter)) {
-			// Stop the program on center button press
-			stopAllTasks();
-		}
-
-		// Petite pause pour éviter la surconsommation CPU
-		//delay(100);
+		// At first, stop all tasks on center button click
+		// But removed for the entire project since the touch sensor does that
 	}
 }
 
@@ -63,6 +58,9 @@ float calculateIntegral2() {
 }
 
 task keepHeadingPID2() {
+	semaphoreInitialize(semConsigne2);
+	startTask(watchButtons2);
+	startTask(IHM2);
 	const float integralLimit = 1000;
 	while (true) {
 		int capActual = getGyroDegrees(gyro);
@@ -97,7 +95,9 @@ task keepHeadingPID2() {
 task IHM2() {
 	while (true) {
 		eraseDisplay(); // Clear display
-		displayTextLine(1, "Center: Exit");
+		displayCenteredTextLine(1, "Mode Mobile");
+		displayTextLine(3, "Consignes:");
+		displayTextLine(4, "Btn Center: Menu Principal");
 
 		displayTextLine(12, "DEBUG:");
 		semaphoreLock(semConsigne2);
@@ -105,6 +105,6 @@ task IHM2() {
 		semaphoreUnlock(semConsigne2);
 		displayTextLine(14, "Degrés actuels: %d", getGyroDegrees(gyro));
 
-		//delay(300);
+		delay(500); // Sans ce delai, l'affichage de debug ne foncionne pas
 	}
 }

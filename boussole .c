@@ -11,37 +11,36 @@
 task interface(){
 
 	eraseDisplay();
-	displayCenteredTextLine(4, "***Robot***");
-	displayCenteredTextLine(6, "Fixe -> Bouton gauche");
-	displayCenteredTextLine(8, "Mobile -> Bouton Droit");
+	displayCenteredTextLine(4, "Boussole");
+	displayTextLine(6, "Bouton gauche: Mode Fixe");
+	displayTextLine(8, "Bouton droite: Mode Mobile");
 
 	while(getButtonPress(buttonLeft)==0 && getButtonPress(buttonRight)==0){}
 
 	if(getButtonPress(buttonLeft)==1){
 		while(getButtonPress(buttonLeft)==1){}
 
+		initialize();
 		startTask(keepHeadingPID);
-
 	}
 	else if(getButtonPress(buttonRight)==1){
 		while(getButtonPress(buttonRight)==1){}
 
 		initialize();
 		startTask(keepHeadingPID2);
-
 	}
 }
 
 void initialize() {
 	eraseDisplay();
-	displayCenteredTextLine(4, "***initialize***");
-	displayCenteredTextLine(7, "Tourner a Gauche-> Bouton Gauche");
-	displayCenteredTextLine(8, "Tourner a Droite-> Bouton Droit");
-	displayCenteredTextLine(10, "Continuer-> Bouton Bas");
+	displayCenteredTextLine(4, "Initialization");
+	displayTextLine(6, "Btn Gauche: Tourner a gauche");
+	displayTextLine(7, "Btn Droite: Tourner a droite");
+	displayTextLine(8, "Btn Haut  : Continuer");
 
 	int speed=20;
 
-	while(getButtonPress(buttonDown)==0) {
+	while(getButtonPress(buttonUp)==0) {
 
 		setMotorSpeed(moteur, 0);
 
@@ -60,23 +59,31 @@ void initialize() {
 
 	}
 
-	while(getButtonPress(buttonDown)==1){}
+	while(getButtonPress(buttonUp)==1) {}
 	setMotorSpeed(moteur, 0);
+}
+
+void stopFix() {
+	stopTask(keepHeadingPID);
+	stopTask(watchButtons);
+	stopTask(IHM);
+}
+
+void stopMobile() {
+	stopTask(keepHeadingPID2);
+	stopTask(watchButtons2);
+	stopTask(IHM2);
 }
 
 task main() {
 	startTask(interface);
 	while(true){
+		// A tout moment, si on click le bouton du center, on va lancer le menu principal
 		if(getButtonPress(buttonEnter) == 1){
-			stopTask(keepHeadingPID);
-			stopTask(watchButtons);
-			stopTask(IHM);
-			stopTask(keepHeadingPID2);
-			stopTask(watchButtons2);
-			stopTask(IHM2);
-			setMotorSpeed(motorA, 0);
+			stopFix();
+			stopMobile();
+			setMotorSpeed(moteur, 0);
 			startTask(interface);
-
 			} else if(getTouchValue(touchSensor) == 1){
 			stopAllTasks();
 		}
