@@ -8,26 +8,25 @@
 #include "fix.c"
 #include "mobile.c"
 
-task interface(){
+task interface() {
 
 	eraseDisplay();
 	displayCenteredTextLine(4, "Boussole");
 	displayTextLine(6, "Bouton gauche: Mode Fixe");
 	displayTextLine(8, "Bouton droite: Mode Mobile");
+	displayTextLine(14, "Touch sensor: Quitter");
 
-	while(getButtonPress(buttonLeft)==0 && getButtonPress(buttonRight)==0){}
+	while(!getButtonPress(buttonLeft) && !getButtonPress(buttonRight)) {}
 
-	if(getButtonPress(buttonLeft)==1){
-		while(getButtonPress(buttonLeft)==1){}
-
+	if(getButtonPress(buttonLeft)){
 		initialize();
-		startTask(keepHeadingPID);
+		startFix();
+		while(getButtonPress(buttonLeft)) {}
 	}
-	else if(getButtonPress(buttonRight)==1){
-		while(getButtonPress(buttonRight)==1){}
-
+	else if(getButtonPress(buttonRight)){
 		initialize();
-		startTask(keepHeadingPID2);
+		startMobile();
+		while(getButtonPress(buttonRight)) {}
 	}
 }
 
@@ -40,27 +39,34 @@ void initialize() {
 
 	int speed=20;
 
-	while(getButtonPress(buttonUp)==0) {
-
-		setMotorSpeed(moteur, 0);
-
-		if(getButtonPress(buttonLeft)==1){
-
+	while(!getButtonPress(buttonUp)) {
+		if(getButtonPress(buttonLeft)) {
 			setMotorSpeed(moteur, speed);
-			while(getButtonPress(buttonLeft)==1){}
-
+			while(getButtonPress(buttonLeft)) {} // Attendre que le bouton soit relâché
 		}
-		else if(getButtonPress(buttonRight)==1){
-
+		else if(getButtonPress(buttonRight)) {
 			setMotorSpeed(moteur, -speed);
-			while(getButtonPress(buttonRight)==1){}
-
+			while(getButtonPress(buttonRight)) {} // Attendre que le bouton soit relâché
 		}
-
+		setMotorSpeed(moteur, 0);
 	}
 
-	while(getButtonPress(buttonUp)==1) {}
+	while(getButtonPress(buttonUp)) {}
 	setMotorSpeed(moteur, 0);
+}
+
+void startFix() {
+	semaphoreInitialize(semConsigne);
+	startTask(keepHeadingPID);
+	startTask(watchButtons);
+	startTask(IHM);
+}
+
+void startMobile() {
+	semaphoreInitialize(semConsigne2);
+	startTask(keepHeadingPID2);
+	// startTask(watchButtons2); // Inutil pour la boussole
+	startTask(IHM2);
 }
 
 void stopFix() {
@@ -71,7 +77,7 @@ void stopFix() {
 
 void stopMobile() {
 	stopTask(keepHeadingPID2);
-	stopTask(watchButtons2);
+	//stopTask(watchButtons2); // On ne lance pas la tache -> on l'arrette pas
 	stopTask(IHM2);
 }
 
@@ -79,12 +85,12 @@ task main() {
 	startTask(interface);
 	while(true){
 		// A tout moment, si on click le bouton du center, on va lancer le menu principal
-		if(getButtonPress(buttonEnter) == 1){
+		if(getButtonPress(buttonEnter)){
 			stopFix();
 			stopMobile();
 			setMotorSpeed(moteur, 0);
 			startTask(interface);
-			} else if(getTouchValue(touchSensor) == 1){
+			} else if(getTouchValue(touchSensor)){
 			stopAllTasks();
 		}
 	}

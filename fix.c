@@ -56,7 +56,7 @@ task watchButtons() {
 }
 
 void launchMotorSpeed(float speed) {
-	// Handle null speed case
+	// Si vitesse null
 	if (speed == 0) setMotorSpeed(moteur, 0);
 
 	else {
@@ -95,16 +95,15 @@ float calculateIntegral() {
 
 // Proportional Integral Derivative control
 task keepHeadingPID() {
-	semaphoreInitialize(semConsigne);
-	startTask(watchButtons);
-	startTask(IHM);
+
 	while (true) {
 		int capActual = nMotorEncoder[moteur];
+
 		semaphoreLock(semConsigne);
 		int error = consigne - capActual;
 		semaphoreUnlock(semConsigne);
-		int vitesseAngulaire = getMotorRPM(moteur) * 6;
 
+		int vitesseAngulaire = getMotorRPM(moteur) * 6; // rpm -> rps
 
 		// Update the error history (for integral calculation)
 		errorHistory[historyIndex] = error;
@@ -117,11 +116,8 @@ task keepHeadingPID() {
 		float speed = P * error + I * integral + D * vitesseAngulaire;
 
 		// Stop the motor if the error is within tolerance
-		if (abs(error) < tolerance) {
-			launchMotorSpeed(0);
-			} else {
-			launchMotorSpeed(speed); // Launch motor with calculated PID speed
-		}
+		if (abs(error) < tolerance) launchMotorSpeed(0);
+		else launchMotorSpeed(speed); // Launch motor with calculated PID speed
 	}
 }
 
@@ -139,9 +135,9 @@ task IHM() {
 
 		displayTextLine(12, "DEBUG:");
 		semaphoreLock(semConsigne);
-		displayTextLine(13, "Consigne: %d", consigne);
+		displayTextLine(13, "But en degrees: %d", consigne);
 		semaphoreUnlock(semConsigne);
-		displayTextLine(14, "Motor Position: %d", nMotorEncoder[moteur]);
+		displayTextLine(14, "Position actuelle: %d", nMotorEncoder[moteur]);
 
 		delay(300);
 	}

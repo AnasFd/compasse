@@ -1,4 +1,4 @@
-// Tâche principale pour gérer le suivi de la consigne
+// Tache principale pour gerer le suivi de la consigne
 task keepHeading() {
     while(fabs(consigne - getMotorEncoder(moteur)) > tolerance) {
     		semaphoreLock(semConsigne);
