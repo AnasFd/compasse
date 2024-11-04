@@ -73,7 +73,7 @@ task keepHeadingPID2() {
 		float integral = calculateIntegral2();
 
 		// PID control equation
-		float speed = P * error + I * integral + D * vitesseAngulaire;
+		float speed = -P * error + I * integral + D * vitesseAngulaire;
 
 		// Stop the motor if the error is within tolerance
 		if (abs(error) < tolerance) { launchMotorSpeed2(0); }
