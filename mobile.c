@@ -1,20 +1,25 @@
 //------------- Mode Mobile -------------//
-// Angular properties
-TSemaphore semConsigne2;
-const float minSpeed2 = 18.0;
-const float maxSpeed2 = 494.0;
-const int minPower2 = 1;
-const int maxPower2 = 48;
-const float pente2 = maxSpeed2 / maxPower2;
-int consigne2 = 0;
-// Define variables for the integral term
-float errorHistory2[10]; // Initialize history of errors with zeros
-int historyIndex2 = 0;  // Index to track the history array
+
+// Proprietes angulaire
+const float maxSpeed2 = 494.0;  // Vitesse maximale
+const float minSpeed2 = 18.0;   // Vitesse minimale
+const int maxPower2 = 48;       // Puissance maximale
+const int minPower2 = 1;        // Puissance maximale
+const float pente2 = maxSpeed2 / maxPower2; // pente pour convertir la vitesse en puissance
+
+// Variables pour la consigne
+TSemaphore semConsigne2; // Semaphore permettant une meilleur gestion de la consigne
+int consigne2 = 0; // Initialisation de la consigne (le but a atteindre par le moteur)
+
+// Variables pour le calcul d'integrale
+float errorHistory2[errorHistorySize]; // Tableau pour stocker les erreurs
+int historyIndex2 = 0;  // Index pour le tableau errorHistory
 
 task watchButtons2() {
 	//while(true) {
-		// At first, stop all tasks on center button click
-		// But removed for the entire project since the touch sensor does that
+		// Au debut, cette fonction etait responsable de l'arret du programme
+        // on cliquant sur le bouton du centre
+		// Cette fonctionalite est geree maintenant par le touch sensor
 	//}
 }
 
@@ -23,31 +28,31 @@ void launchMotorSpeed2(float speed) {
 	if (speed == 0) setMotorSpeed(moteur, 0);
 
 	else {
-		// Preserve the sign of the speed
-		float absSpeed = fabs(speed);  // Get absolute speed for comparison
+		// Preserver le signe de la vitesse
+		float absSpeed = fabs(speed);
 
-		// Limit speed to maxSpeed if it exceeds the max limit
+		// Limiter la vitesse maximale
 		absSpeed = (absSpeed > maxSpeed2) ? maxSpeed2 : minSpeed2;
 
-		// Calculate the motor power from speed
+		// calcul de la puissance en fonction de la vitesse
 		int power = (int)(absSpeed / pente2);  // Convert speed to motor power
 
-		// Ensure the motor power is within the allowed range
+		// Verification que la puissance est ok
 		if (power < minPower2) {
 			power = minPower2;
 		}
 
-		// Apply the correct sign back to the power (positive or negative)
+		// Apres les calculs, on reprond la direction initiale (droite ou gauche)
 		if (speed < 0) {
-			power = -power;  // Negative power for reverse direction
+			power = -power;
 		}
 
-		// Set motor speed to the calculated power
+		// Lancement du moteur a la puissance calculee
 		setMotorSpeed(moteur, power);
 	}
 }
 
-// Function to calculate the sum of errors (Integral)
+// Fonction pour calculer la somme des erreurs (integral)
 float calculateIntegral2() {
 	float sum = 0;
 	for (int i = 0; i < 10; i++) {
@@ -56,9 +61,10 @@ float calculateIntegral2() {
 	return sum;
 }
 
+// Controle proportionnel integrale derivatif (PID)
 task keepHeadingPID2() {
 	semaphoreLock(semConsigne2);
-	consigne2 = getGyroDegrees(gyro);
+	consigne2 = getGyroDegrees(gyro); // Reprednre la derniere position
 	semaphoreUnlock(semConsigne2);
 	while (true) {
 		int capActual = getGyroDegrees(gyro);
@@ -67,25 +73,25 @@ task keepHeadingPID2() {
 		semaphoreUnlock(semConsigne2);
 		int vitesseAngulaire = getGyroRate(gyro);
 
-		// Update the error history (for integral calculation)
+		// maj de l'historique des erreurs (pour le calcul d'integrale)
 		errorHistory2[historyIndex2] = error;
 		historyIndex2 = (historyIndex2 + 1) % errorHistorySize;
 
-		// Calculate the integral term
+		// Calcul d'integrale
 		float integral = calculateIntegral2();
 
-		// PID control equation
+		// Equation PID
 		float speed = -P * error + I * integral + D * vitesseAngulaire;
 
-		// Stop the motor if the error is within tolerance
+		// Arret du moteur si l'erreur est toleree
 		if (abs(error) < tolerance) { launchMotorSpeed2(0); }
-		else { launchMotorSpeed2(speed); } // Launch motor with calculated PID speed
+		else { launchMotorSpeed2(speed); } // lancement du moteur a la vitesse calculee
 	}
 }
 
 task IHM2() {
 	while (true) {
-		eraseDisplay(); // Clear display
+		eraseDisplay();
 		displayCenteredTextLine(1, "Mode Mobile");
 		displayTextLine(3, "Consignes:");
 		displayTextLine(4, "Btn Center: Menu Principal");

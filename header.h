@@ -4,7 +4,7 @@
 #define tolerance 1      // Tolerance pour eviter les micro corrections
 #define errorHistorySize 10
 
-// Régulation qui marche bien pour les deux modes
+// Régulation qui marche bien pour les deux modes (pour mon moteur)
 #define P 10.0
 #define D -0.02
 #define I 0.001

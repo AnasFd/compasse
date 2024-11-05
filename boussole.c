@@ -8,6 +8,7 @@
 #include "fix.c"
 #include "mobile.c"
 
+// Interface utilisateur
 task interface() {
 
 	eraseDisplay();
@@ -16,10 +17,11 @@ task interface() {
 	displayTextLine(8, "Bouton droite: Mode Mobile");
 	displayTextLine(14, "Touch sensor: Quitter");
 
+    // Tant qu'on a pas fait un choix (gauche -> mode fixe, droite -> mode mobile)
 	while(!getButtonPress(buttonLeft) && !getButtonPress(buttonRight)) {}
 
 	if(getButtonPress(buttonLeft)){
-		while(getButtonPress(buttonLeft)) {}
+		while(getButtonPress(buttonLeft)) {} // Tant qu'on a pas relache le bouton
 		initialize();
 		startFix();
 	}
@@ -30,6 +32,7 @@ task interface() {
 	}
 }
 
+// Fonction d'initialization, pour eviter les problemes de cable liee au gyro
 void initialize() {
 	eraseDisplay();
 	displayCenteredTextLine(4, "Initialization");
@@ -42,17 +45,16 @@ void initialize() {
 	while(!getButtonPress(buttonUp)) {
 		if(getButtonPress(buttonLeft)) {
 			setMotorSpeed(moteur, speed);
-			while(getButtonPress(buttonLeft)) {} // Attendre que le bouton soit relache
+			while(getButtonPress(buttonLeft)) {} // Tant qu'on a pas relache le bouton
 		}
 		else if(getButtonPress(buttonRight)) {
 			setMotorSpeed(moteur, -speed);
-			while(getButtonPress(buttonRight)) {} // Attendre que le bouton soit relache
-		}
+			while(getButtonPress(buttonRight)) {}
+        }
 		setMotorSpeed(moteur, 0);
 		delay(100);
 	}
 
-	//while(getButtonPress(buttonUp)) {}
 	setMotorSpeed(moteur, 0);
 	delay(300);
 }
@@ -68,7 +70,7 @@ void startMobile() {
 	semaphoreInitialize(semConsigne2);
 	resetGyro(gyro);
 	startTask(keepHeadingPID2);
-	// startTask(watchButtons2); // Inutil pour la boussole
+	// startTask(watchButtons2); // Inutil pour la boussole (voir l'implementation dans mobile.c pour plus d'info)
 	startTask(IHM2);
 }
 
@@ -84,6 +86,7 @@ void stopMobile() {
 	stopTask(IHM2);
 }
 
+// Tache principal
 task main() {
 	startTask(interface);
 	while(true){
@@ -93,7 +96,7 @@ task main() {
 			stopMobile();
 			setMotorSpeed(moteur, 0);
 			startTask(interface);
-			} else if(getTouchValue(touchSensor)){
+			} else if(getTouchValue(touchSensor)){ // Si on appui sur le capteur de contact, on arrette le programme
 			stopAllTasks();
 		}
 	}

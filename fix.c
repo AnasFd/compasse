@@ -1,31 +1,33 @@
 //------------- Mode Fixe -------------//
 
-// Linear properties
-TSemaphore semConsigne;
-const float maxSpeed = 880.0;  // Maximum allowed speed
-const float minSpeed = 40.0;   // Minimum speed threshold
-const int maxPower = 92;       // Maximum motor power
-const int minPower = 2;        // Minimum motor power
-const float pente = maxSpeed / maxPower;  // Slope to convert speed to power
-int consigne = 0;
-// Variables for the integral term
-float errorHistory[errorHistorySize]; // Initialize history of errors with zeros
-int historyIndex = 0;  // Index to track the history array
+// Proprietes lineaires
+const float maxSpeed = 880.0;  // Vitesse maximale
+const float minSpeed = 40.0;   // Vitesse minimale
+const int maxPower = 92;       // Puissance maximale
+const int minPower = 2;        // Puissance minimale
+const float pente = maxSpeed / maxPower;  // pente pour convertir la vitesse en puissance
 
+// Variables pour la consigne
+TSemaphore semConsigne; // Semaphore permettant une meilleur gestion de la consigne
+int consigne = 0; // Initialisation de la consigne (le but a atteindre par le moteur)
+
+// Variables pour le calcul d'integrale
+float errorHistory[errorHistorySize]; // Tableau pour stocker les erreurs
+int historyIndex = 0;  // Index pour le tableau errorHistory
 
 
 // Tâche pour surveiller les boutons et ajuster la consigne
 task watchButtons() {
 	while(true) {
-		// Bouton haut (rotation de 90° à droite)
+		// Bouton haut (rotation de 90 deg a droite)
 		if (getButtonPress(buttonUp)) {
 			semaphoreLock(semConsigne);
 			consigne += 90;
 			semaphoreUnlock(semConsigne);
-			while(getButtonPress(buttonUp)) {} // Attendre que le bouton soit relâché
+			while(getButtonPress(buttonUp)) {} // Attendre que le bouton soit relache
 		}
 
-		// Bouton bas (rotation de 90° à gauche)
+		// Bouton bas (rotation de 90 deg a gauche)
 		if (getButtonPress(buttonDown)) {
 			semaphoreLock(semConsigne);
 			consigne -= 90;
@@ -33,7 +35,7 @@ task watchButtons() {
 			while(getButtonPress(buttonDown)) {}
 		}
 
-		// Bouton droit (rotation de 10° à droite)
+		// Bouton droit (rotation de 10 deg a droite)
 		if (getButtonPress(buttonRight)) {
 			semaphoreLock(semConsigne);
 			consigne += 10;
@@ -41,7 +43,7 @@ task watchButtons() {
 			while(getButtonPress(buttonRight)) {}
 		}
 
-		// Bouton gauche (rotation de 10° à gauche)
+		// Bouton gauche (rotation de 10 deg a gauche)
 		if (getButtonPress(buttonLeft)) {
 			semaphoreLock(semConsigne);
 			consigne -= 10;
@@ -56,31 +58,31 @@ void launchMotorSpeed(float speed) {
 	if (speed == 0) setMotorSpeed(moteur, 0);
 
 	else {
-		// Preserve the sign of the speed
-		float absSpeed = fabs(speed);  // Get absolute speed for comparison
+		// Preserver le signe de la vitesse
+        float absSpeed = fabs(speed);
 
-		// Limit speed to maxSpeed if it exceeds the max limit
+		// Limiter la vitesse maximale
 		absSpeed = (absSpeed > maxSpeed) ? maxSpeed : minSpeed;
 
-		// Calculate the motor power from speed
-		int power = (int)(absSpeed / pente);  // Convert speed to motor power
+		// calcul de la puissance en fonction de la vitesse
+		int power = (int)(absSpeed / pente);
 
-		// Ensure the motor power is within the allowed range
+		// Verification que la puissance est ok
 		if (power < minPower) {
 			power = minPower;
 		}
 
-		// Apply the correct sign back to the power (positive or negative)
+		// Apres les calculs, on reprond la direction initiale (droite ou gauche)
 		if (speed < 0) {
-			power = -power;  // Negative power for reverse direction
+			power = -power;
 		}
 
-		// Set motor speed to the calculated power
+		// Lancement du moteur a la puissance calculee
 		setMotorSpeed(moteur, power);
 	}
 }
 
-// Function to calculate the sum of errors (Integral)
+// Fonction pour calculer la somme des erreurs (integral)
 float calculateIntegral() {
 	float sum = 0;
 	for (int i = 0; i < errorHistorySize; i++) {
@@ -89,7 +91,7 @@ float calculateIntegral() {
 	return sum;
 }
 
-// Proportional Integral Derivative control
+// Controle proportionnel integrale derivatif (PID)
 task keepHeadingPID() {
 	semaphoreLock(semConsigne);
 	consigne = nMotorEncoder[moteur]; // Reprednre la derniere position
@@ -103,25 +105,25 @@ task keepHeadingPID() {
 
 		int vitesseAngulaire = getMotorRPM(moteur) * 6; // rpm -> rps
 
-		// Update the error history (for integral calculation)
+		// maj de l'historique des erreurs (pour le calcul d'integrale)
 		errorHistory[historyIndex] = error;
 		historyIndex = (historyIndex + 1) % errorHistorySize;
 
-		// Calculate the integral term
+		// Calcul d'integrale
 		float integral = calculateIntegral();
 
-		// PID control equation
+		// Equation PID
 		float speed = P * error + I * integral + D * vitesseAngulaire;
 
-		// Stop the motor if the error is within tolerance
+		// Arret du moteur si l'erreur est toleree
 		if (abs(error) < tolerance) launchMotorSpeed(0);
-		else launchMotorSpeed(speed); // Launch motor with calculated PID speed
+		else launchMotorSpeed(speed); // lancement du moteur a la vitesse calculee
 	}
 }
 
 task IHM() {
 	while (true) {
-		eraseDisplay(); // Clear display
+		eraseDisplay();
 		displayCenteredTextLine(1, "Mode Fixe");
 
 		displayTextLine(3, "Consignes:");
@@ -137,6 +139,6 @@ task IHM() {
 		semaphoreUnlock(semConsigne);
 		displayTextLine(14, "Position actuelle: %d", nMotorEncoder[moteur]);
 
-		delay(300);
+		delay(300); // Sans le delai, l'affichage de debug ne fonctionne pas
 	}
 }
