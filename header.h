@@ -5,7 +5,7 @@
 #define errorHistorySize 10
 
 // Régulation qui marche bien pour les deux modes
-#define P -10.0
+#define P 10.0
 #define D -0.02
 #define I 0.001
 

@@ -57,7 +57,9 @@ float calculateIntegral2() {
 }
 
 task keepHeadingPID2() {
-	resetGyro(gyro);
+	semaphoreLock(semConsigne2);
+	consigne2 = getGyroDegrees(gyro);
+	semaphoreUnlock(semConsigne2);
 	while (true) {
 		int capActual = getGyroDegrees(gyro);
 		semaphoreLock(semConsigne2);
@@ -73,7 +75,7 @@ task keepHeadingPID2() {
 		float integral = calculateIntegral2();
 
 		// PID control equation
-		float speed = P * error + I * integral + D * vitesseAngulaire;
+		float speed = -P * error + I * integral + D * vitesseAngulaire;
 
 		// Stop the motor if the error is within tolerance
 		if (abs(error) < tolerance) { launchMotorSpeed2(0); }

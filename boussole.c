@@ -19,14 +19,14 @@ task interface() {
 	while(!getButtonPress(buttonLeft) && !getButtonPress(buttonRight)) {}
 
 	if(getButtonPress(buttonLeft)){
+		while(getButtonPress(buttonLeft)) {}
 		initialize();
 		startFix();
-		while(getButtonPress(buttonLeft)) {}
 	}
 	else if(getButtonPress(buttonRight)){
+		while(getButtonPress(buttonRight)) {}
 		initialize();
 		startMobile();
-		while(getButtonPress(buttonRight)) {}
 	}
 }
 
@@ -37,41 +37,44 @@ void initialize() {
 	displayTextLine(7, "Btn Droite: Tourner a droite");
 	displayTextLine(8, "Btn Haut  : Continuer");
 
-	int speed=20;
+	int speed = 20;
 
 	while(!getButtonPress(buttonUp)) {
 		if(getButtonPress(buttonLeft)) {
 			setMotorSpeed(moteur, speed);
-			while(getButtonPress(buttonLeft)) {} // Attendre que le bouton soit relâché
+			while(getButtonPress(buttonLeft)) {} // Attendre que le bouton soit relache
 		}
 		else if(getButtonPress(buttonRight)) {
 			setMotorSpeed(moteur, -speed);
-			while(getButtonPress(buttonRight)) {} // Attendre que le bouton soit relâché
+			while(getButtonPress(buttonRight)) {} // Attendre que le bouton soit relache
 		}
 		setMotorSpeed(moteur, 0);
+		delay(100);
 	}
 
-	while(getButtonPress(buttonUp)) {}
+	//while(getButtonPress(buttonUp)) {}
 	setMotorSpeed(moteur, 0);
+	delay(300);
 }
 
 void startFix() {
 	semaphoreInitialize(semConsigne);
-	startTask(keepHeadingPID);
 	startTask(watchButtons);
+	startTask(keepHeadingPID);
 	startTask(IHM);
 }
 
 void startMobile() {
 	semaphoreInitialize(semConsigne2);
+	resetGyro(gyro);
 	startTask(keepHeadingPID2);
 	// startTask(watchButtons2); // Inutil pour la boussole
 	startTask(IHM2);
 }
 
 void stopFix() {
-	stopTask(keepHeadingPID);
 	stopTask(watchButtons);
+	stopTask(keepHeadingPID);
 	stopTask(IHM);
 }
 

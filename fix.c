@@ -22,7 +22,6 @@ task watchButtons() {
 			semaphoreLock(semConsigne);
 			consigne += 90;
 			semaphoreUnlock(semConsigne);
-			setMotorTarget(moteur, consigne, 20);
 			while(getButtonPress(buttonUp)) {} // Attendre que le bouton soit relâché
 		}
 
@@ -31,7 +30,6 @@ task watchButtons() {
 			semaphoreLock(semConsigne);
 			consigne -= 90;
 			semaphoreUnlock(semConsigne);
-			setMotorTarget(moteur, consigne, 20);
 			while(getButtonPress(buttonDown)) {}
 		}
 
@@ -40,7 +38,6 @@ task watchButtons() {
 			semaphoreLock(semConsigne);
 			consigne += 10;
 			semaphoreUnlock(semConsigne);
-			setMotorTarget(moteur, consigne, 20);
 			while(getButtonPress(buttonRight)) {}
 		}
 
@@ -49,7 +46,6 @@ task watchButtons() {
 			semaphoreLock(semConsigne);
 			consigne -= 10;
 			semaphoreUnlock(semConsigne);
-			setMotorTarget(moteur, consigne, 20);
 			while(getButtonPress(buttonLeft)) {}
 		}
 	}
@@ -95,7 +91,9 @@ float calculateIntegral() {
 
 // Proportional Integral Derivative control
 task keepHeadingPID() {
-
+	semaphoreLock(semConsigne);
+	consigne = nMotorEncoder[moteur]; // Reprednre la derniere position
+	semaphoreUnlock(semConsigne);
 	while (true) {
 		int capActual = nMotorEncoder[moteur];
 
